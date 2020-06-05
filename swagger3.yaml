@@ -98,3 +98,10 @@ paths:
 
         '500':
           description: Falha não tratada no servidor
+          
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: token
