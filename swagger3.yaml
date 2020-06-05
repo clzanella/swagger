@@ -1,10 +1,5 @@
 openapi: 3.0.0
 
-servers:
-  - description: Homologação Inventti
-    url: https://hom.inventti.com.br/nfce
-  - description: SwaggerHub API Auto Mocking
-    url: https://virtserver.swaggerhub.com/AnalyticaLabs/EDocsNFePack/1.0.0
 info:
   description: API para emissão de NF-e e NFC-e
   version: "1.0.0"
@@ -16,15 +11,9 @@ security:
   - {}
   - ApiKeyAuth: [] 
 
-tags:
-  - name: nfe
-    description: Rotas pertinentes a NF-e e NFC-e
-
 paths:
   /api/nfe/RecepcionarNotaAssincrona:
     post:
-      tags:
-        - nfe
       summary: Emissão de nota fiscal
       operationId: recepcionarNotaAssincrona
       description: Faz a emisão de um XML de NF-e ou NFC-e
@@ -32,26 +21,21 @@ paths:
         content:
           application/xml:
             schema:
-              $ref: '#/components/schemas/RequisicaoRecepcionarNota'
-        description: Registra o comando para processamento assíncrono
+              type: string
+
       responses:
         '200':
           description: Resposta do registro para processamento assíncrono do XML fiscal
           content:
             application/xml:
               schema:
-                oneOf:
-                  - $ref: '#/components/schemas/RespostaRecepcionarNotaSucesso'
-                  - $ref: '#/components/schemas/RespostaRecepcionarNotaFalha'
-                xml:
-                  name: 'RecepcionarNotaResposta'
+                type: string
+
         '500':
           description: Falha não tratada no servidor
 
   /api/nfe/RecepcionarComandoAssincrono:
     post:
-      tags:
-        - nfe
       summary: Execução de comandos sobre notas fiscais
       operationId: recepcionarComandoAssincrono
       description: Faz a execução de um comando sobre um XML fiscal
@@ -59,26 +43,21 @@ paths:
         content:
           application/xml:
             schema:
-              $ref: '#/components/schemas/RequisicaoRecepcionarComando'
-        description: Registra o comando para processamento assíncrono
+              type: string
+
       responses:
         '200':
           description: Resposta do registro para processamento
           content:
             application/xml:
               schema:
-                oneOf:
-                  - $ref: '#/components/schemas/RespostaRecepcionarComandoSucesso'
-                  - $ref: '#/components/schemas/RespostaRecepcionarComandoFalha'
-                xml:
-                  name: 'RecepcionarComandoResposta'
+                type: string
+
         '500':
           description: Falha não tratada no servidor
 
   /api/NFe/RecepcionarEventoFiscalAssincrono:
     post:
-      tags:
-        - nfe
       summary: Recepção de eventos fiscais
       operationId: recepcionarEventoFiscalAssincrono
       description: Faz o registro de evento fiscal de forma assíncrona
@@ -86,372 +65,36 @@ paths:
         content:
           application/xml:
             schema:
-              $ref: '#/components/schemas/RequisicaoRecepcionarEventoFiscal'
-              xml:
-                name: evento
-        description: Registra o evento fiscal para processamento assíncrono
+              type: string
       responses:
         '200':
           description: Resposta do registro para processamento
           content:
             application/xml:
               schema:
-                oneOf:
-                  - $ref: '#/components/schemas/RespostaRecepcionarEventoFiscalSucesso'
-                  - $ref: '#/components/schemas/RespostaRecepcionarEventoFiscalFalha'
-                xml:
-                  name: 'RecepcionarEventoFiscalResposta'
+                type: string
+
         '500':
           description: Falha não tratada no servidor
         
   /api/NFe/RecepcionarInutilizacaoAssincrona:
     post:
-      tags:
-        - nfe
       summary: Recepção de inutilizações
       operationId: recepcionarInutilizacaoAssincrona
       description: Faz o registro de inutilização de forma assíncrona
       requestBody:
         content:
           application/xml:
-            schema:
-              $ref: '#/components/schemas/RequisicaoRecepcionarInutilizacao'
-        description: Registra a inutilização para processamento assíncrono
+              schema:
+                type: string
       responses:
         '200':
           description: Resposta do registro para processamento
           content:
             application/xml:
               schema:
-                oneOf:
-                  - $ref: '#/components/schemas/RespostaRecepcionarInutilizacaoSucesso'
-                  - $ref: '#/components/schemas/RespostaRecepcionarInutilizacaoFalha'
-                xml:
-                  name: 'RecepcionarInutilizacaoResposta'
+                type: string
+                example: ''
+
         '500':
           description: Falha não tratada no servidor
-        
-components:
-  securitySchemes:
-    ApiKeyAuth:
-      type: apiKey
-      in: header
-      name: token
-  schemas:
-  
-    # Schemas comuns para todas as rotas
-  
-    RespostaErro:
-      type: object
-      required:
-        - Codigo
-        - Descricao
-      properties:
-        Codigo:
-          type: integer
-          example: 2999
-        Descricao:
-          type: string
-          example: 'Falha ao validar o objeto, propriedade nome é obrigatória e deve ser informada.'
-    RespostaErroExcecao:
-      allOf:
-        - $ref: '#/components/schemas/RespostaErro'
-        - type: object
-          required:
-            - Excecao
-          properties:
-            Descricao:
-              type: string
-              example: 'Um erro inesperado aconteceu. Verifique a exceção para mais detalhes.'
-            Excecao:
-              type: string
-              example: 'NFePackException: Código: 20108. Descrição: Filial (EstabGerdor) de CNPJ 05910541000170 não cadastrado. Correção: Verifique se o CNPJ 05910541000170 é um número válido, e se está cadastrado.'
-    RespostaBase:
-      type: object
-      required:
-        - Versao
-        - SituacaoOperacao
-      properties:
-        Versao:
-          type: string
-          example: 20.5.0.0
-        SituacaoOperacao:
-          type: integer
-          example: 1
-          
-    # Schemas específicos por rota
-    
-    RequisicaoRecepcionarNota:
-      type: object
-      required:
-        - infNFe
-      properties:
-        infNFe:
-          $ref: '#/components/schemas/RequisicaoRecepcionarNotaInfNFe'
-      xml:
-          name: NFe
-    RequisicaoRecepcionarNotaInfNFe:
-      type: object
-      xml:
-          name: infNFe
-    RespostaRecepcionarNotaSucesso:
-      allOf:
-        - $ref: '#/components/schemas/RespostaBase'
-        - type: object
-    RespostaRecepcionarNotaFalha:
-      allOf:
-        - $ref: '#/components/schemas/RespostaBase'
-        - type: object
-          required:
-            - SituacaoOperacao
-            - Erro
-          properties:
-            SituacaoOperacao:
-              type: integer
-              example: 2
-            Erro:
-              $ref: '#/components/schemas/RespostaErroExcecao'
-          
-    RequisicaoRecepcionarComando:
-      type: object
-      required:
-        - CNPJ
-        - Serie
-        - NumeroNota
-        - ModeloDocumento
-        - Acao
-        - Parametros
-        - Sistema
-      properties:
-        CNPJ:
-          type: integer
-          pattern: int64
-          example: 3859809000161
-        Serie:
-          type: integer
-          example: 400
-        NumeroNota:
-          type: integer
-          example: 62265
-        ModeloDocumento:
-          type: integer
-          example: 55
-          enum:
-            - 55
-            - 65
-        Acao:
-          type: integer
-          example: 46
-        Parametros:
-          type: string
-          example: ''
-        Sistema:
-          type: string
-          example: 'PROTHEUS'
-      xml:
-          name: RecepcionarComandoSincrono
-    RespostaRecepcionarComandoSucesso:
-      allOf:
-        - $ref: '#/components/schemas/RespostaBase'
-        - type: object
-      xml:
-          name: RecepcionarComandoResposta
-    RespostaRecepcionarComandoFalha:
-      allOf:
-        - $ref: '#/components/schemas/RespostaBase'
-        - type: object
-          required:
-            - SituacaoOperacao
-            - Erro
-          properties:
-            SituacaoOperacao:
-              type: integer
-              example: 2
-            Erro:
-              $ref: '#/components/schemas/RespostaErroExcecao'
-      xml:
-          name: RecepcionarComandoResposta
-
-    RequisicaoRecepcionarEventoFiscal:
-      type: object
-      required:
-        - infEvento
-        - InformacaoAdicionalDeIntegracaoEventoFiscal
-      properties:
-        infEvento:
-          $ref: '#/components/schemas/RequisicaoRecepcionarEventoFiscalInf'
-        InformacaoAdicionalDeIntegracaoEventoFiscal:
-          $ref: '#/components/schemas/RequisicaoRecepcionarEventoFiscalInfAdic'
-      xml:
-          name: evento
-    RequisicaoRecepcionarEventoFiscalInf:
-      type: object
-      required:
-        - Id
-        - cOrgao
-        - tpAmb
-        - detEvento
-      properties:
-        Id:
-          type: string
-          example: 'ID1101104119091698744300023955400000000567133012578701'
-          xml:
-            attribute: true
-        cOrgao:
-          type: integer
-          example: 41
-        tpAmb:
-          type: integer
-          example: 2
-          enum:
-            - 1
-            - 2
-        CNPJ:
-          type: integer
-          format: int64
-          example: 04216845000170
-        chNFe:
-          type: string
-          example: '41190904216845000170550010000016511439114049'
-        dhEvento:
-          type: string
-          pattern: date-time
-          example: '2019-09-24T10:31:57-03:00'
-        tpEvento:
-          type: integer
-          example: 110110
-        nSeqEvento:
-          type: integer
-          example: 1
-        verEvento:
-          type: string
-          example: '1.00'
-        detEvento:
-          $ref: '#/components/schemas/RequisicaoRecepcionarEventoFiscalInfDetEvento'
-    RequisicaoRecepcionarEventoFiscalInfDetEvento:
-      type: object
-      required:
-        - descEvento
-        - xCorrecao
-        - xCondUso
-      properties:
-        descEvento:
-          type: string
-          example: 'Carta de Correcao'
-        xCorrecao:
-          type: string
-          example: 'NOME CORRETO E TESTE'
-        xCondUso:
-          type: string
-          example: 'A Carta de Correcao e disciplinada pelo paragrafo 1o-A do art. 7o do Convenio S/N, de 15 de dezembro de 1970'
-    RequisicaoRecepcionarEventoFiscalInfAdic:
-      type: object
-      required:
-        - Sistema
-      properties:
-        Sistema:
-          type: string
-          example: 'PROTHEUS'
-    RespostaRecepcionarEventoFiscalSucesso:
-      allOf:
-        - $ref: '#/components/schemas/RespostaBase'
-        - type: object
-      xml:
-          name: RecepcionarEventoFiscalResposta
-    RespostaRecepcionarEventoFiscalFalha:
-      allOf:
-        - $ref: '#/components/schemas/RespostaBase'
-        - type: object
-          required:
-            - SituacaoOperacao
-            - Erro
-          properties:
-            SituacaoOperacao:
-              type: integer
-              example: 2
-            Erro:
-              $ref: '#/components/schemas/RespostaErroExcecao'
-      xml:
-          name: RecepcionarEventoFiscalResposta
-          
-    RequisicaoRecepcionarInutilizacao:
-      type: object
-      required:
-        - infEvento
-        - InformacaoAdicionalDeIntegracaoEventoFiscal
-      properties:
-        Id:
-          type: string
-          example: 'ID51180602916265001646550010001580601368470115'
-          xml:
-            attribute: true
-        tpAmb:
-          type: integer
-          example: 2
-          enum:
-            - 1
-            - 2
-        xServ:
-          type: string
-          example: 'INUTILIZAR'
-        cUF:
-          type: integer
-          example: 41
-        ano:
-          type: integer
-          example: 19
-        CNPJ:
-          type: integer
-          format: int64
-          example: 04216845000170
-        mod:
-          type: integer
-          example: 55
-          enum:
-            - 55
-            - 65
-        serie:
-          type: integer
-          example: 400
-        nNFIni:
-          type: integer
-          example: 1630
-        nNFFin:
-          type: integer
-          example: 1630
-        xJust:
-          type: string
-          example: 'ERRO DE FATURAMENTO'
-        InformacaoAdicionalDeIntegracaoEventoFiscal:
-          $ref: '#/components/schemas/RequisicaoRecepcionarInutilizacaoInfAdic'
-      xml:
-          name: infInut
-    RequisicaoRecepcionarInutilizacaoInfAdic:
-      type: object
-      required:
-        - Sistema
-      properties:
-        Sistema:
-          type: string
-          example: 'Teste 2222'
-    RespostaRecepcionarInutilizacaoSucesso:
-      allOf:
-        - $ref: '#/components/schemas/RespostaBase'
-        - type: object
-      xml:
-          name: RecepcionarInutilizacaoResposta
-    RespostaRecepcionarInutilizacaoFalha:
-      allOf:
-        - $ref: '#/components/schemas/RespostaBase'
-        - type: object
-          required:
-            - SituacaoOperacao
-            - Erro
-          properties:
-            SituacaoOperacao:
-              type: integer
-              example: 2
-            Erro:
-              $ref: '#/components/schemas/RespostaErroExcecao'
-      xml:
-          name: RecepcionarInutilizacaoResposta
