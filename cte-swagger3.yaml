@@ -1,10 +1,5 @@
 openapi: 3.0.0
 
-servers:
-  - description: Homologação Inventti
-    url: https://hom.inventti.com.br/nfce
-  - description: SwaggerHub API Auto Mocking
-    url: https://virtserver.swaggerhub.com/AnalyticaLabs/EDocsNFePack/1.0.0
 info:
   description: API para manipulação de CTe-e
   version: "1.0.0"
@@ -16,16 +11,10 @@ security:
   - {}
   - ApiKeyAuth: [] 
 
-tags:
-  - name: cte
-    description: Rotas pertinentes a CT-e
-
 paths:
 
   /api/CTe/Recepcionar:
     post:
-      tags:
-        - cte
       summary: Execução de comandos sobre CT-es
       operationId: recepcionarComandoAssincrono
       description: Faz a execução de um comando
@@ -33,122 +22,14 @@ paths:
         content:
           application/xml:
             schema:
-              $ref: '#/components/schemas/RequisicaoRecepcionarComando'
-        description: Registra o comando para processamento assíncrono
+              type: string
+
       responses:
         '200':
           description: Resposta do registro para processamento
           content:
             application/xml:
               schema:
-                oneOf:
-                  - $ref: '#/components/schemas/RespostaRecepcionarComandoSucesso'
-                  - $ref: '#/components/schemas/RespostaRecepcionarComandoFalha'
-                xml:
-                  name: 'RecepcionarComandoResposta'
+                type: string
         '500':
           description: Falha não tratada no servidor
-
-
-components:
-  securitySchemes:
-    ApiKeyAuth:
-      type: apiKey
-      in: header
-      name: token
-  schemas:
-  
-    # Schemas comuns para todas as rotas
-  
-    RespostaErro:
-      type: object
-      required:
-        - Codigo
-        - Descricao
-      properties:
-        Codigo:
-          type: integer
-          example: 2999
-        Descricao:
-          type: string
-          example: 'Falha ao validar o objeto, propriedade nome é obrigatória e deve ser informada.'
-    RespostaErroExcecao:
-      allOf:
-        - $ref: '#/components/schemas/RespostaErro'
-        - type: object
-          required:
-            - Excecao
-          properties:
-            Descricao:
-              type: string
-              example: 'Um erro inesperado aconteceu. Verifique a exceção para mais detalhes.'
-            Excecao:
-              type: string
-              example: 'CTePackException: Código: 20108. Descrição: Filial (EstabGerdor) de CNPJ 05910541000170 não cadastrado. Correção: Verifique se o CNPJ 05910541000170 é um número válido, e se está cadastrado.'
-    RespostaBase:
-      type: object
-      required:
-        - Versao
-        - SituacaoOperacao
-      properties:
-        Versao:
-          type: string
-          example: 20.5.0.0
-        SituacaoOperacao:
-          type: integer
-          example: 1
-          
-    # Schemas específicos por rota
-    
-    RequisicaoRecepcionarComando:
-      type: object
-      required:
-        - CNPJ
-        - Acao
-        - Parametros
-        - Sistema
-      properties:
-        CNPJ:
-          type: integer
-          pattern: int64
-          example: 3859809000161
-        Acao:
-          type: integer
-          example: 46
-        Parametros:
-          $ref: '#/components/schemas/RequisicaoRecepcionarComandoParametros'
-      xml:
-          name: Comando
-    RequisicaoRecepcionarComandoParametros:
-      type: object
-      required:
-        - Sistema
-        - Chave
-      properties:
-        Sistema:
-          type: string
-          example: 'PROTHEUS'
-        Chave:
-          type: string
-          example: '42171109249980000135577112313405701150414630'
-    RespostaRecepcionarComandoSucesso:
-      allOf:
-        - $ref: '#/components/schemas/RespostaBase'
-        - type: object
-      xml:
-          name: RecepcionarComandoResposta
-    RespostaRecepcionarComandoFalha:
-      allOf:
-        - $ref: '#/components/schemas/RespostaBase'
-        - type: object
-          required:
-            - SituacaoOperacao
-            - Erro
-          properties:
-            SituacaoOperacao:
-              type: integer
-              example: 2
-            Erro:
-              $ref: '#/components/schemas/RespostaErroExcecao'
-      xml:
-          name: RecepcionarComandoResposta
